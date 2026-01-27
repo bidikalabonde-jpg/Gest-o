@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Financeira Completa</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            padding: 0 30px;
+            border-bottom: 2px solid #e2e8f0;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { font-size: 0.85em; color: #666; margin-bottom: 10px; text-transform: uppercase; }
+        .card .value { font-size: 1.8em; font-weight: bold; }
+        .card.receita .value { color: #10b981; }
+        .card.despesa .value { color: #ef4444; }
+        .card.saldo .value { color: #3b82f6; }
+        .card.meta .value { color: #f59e0b; }
+        
+        .content { padding: 30px; }
+        .section { margin-bottom: 40px; }
+        .section h2 { 
+            color: #333; 
+            margin-bottom: 20px; 
+            border-bottom: 3px solid #667eea; 
+            padding-bottom: 10px; 
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group { margin-bottom: 15px; }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            color: #555; 
+            font-weight: 600; 
+            font-size: 0.9em; 
+        }
+        
+        input, select, textarea { 
+            width: 100%; 
+            padding: 12px; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 8px; 
+            font-size: 1em;
+            font-family: inherit;
+        }
+        
+        textarea { resize: vertical; min-height: 80px; }
+        
+        button { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 12px 30px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 1em;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        button:hover { transform: scale(1.05); }
+        
+        .btn-secondary { background: #6c757d; }
+        .btn-success { background: #10b981; }
+        .btn-danger { 
+            background: #ef4444;
+            padding: 8px 15px;
+            font-size: 0.9em;
+        }
+        
+        .transaction-item, .meta-item, .recorrente-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        
+        .transaction-item:hover { background: #e9ecef; }
+        
+        .transaction-info { flex: 1; }
+        .transaction-name { font-weight: 600; color: #333; margin-bottom: 5px; }
+        .transaction-category { color: #666; font-size: 0.9em; }
+        
+        .transaction-value { 
+            font-size: 1.3em; 
+            font-weight: bold; 
+            padding: 0 20px; 
+        }
+        .transaction-value.receita { color: #10b981; }
+        .transaction-value.despesa { color: #ef4444; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        
+        .progress-fill.over { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .category-bar { margin-bottom: 15px; }
+        
+        .category-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .dashboard { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Gestão Financeira Completa</h1>
+            <p>Controle total das suas finanças pessoais</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" onclick="showTab('transacoes')">💳 Transações</button>
+            <button class="tab" onclick="showTab('metas')">🎯 Metas</button>
+            <button class="tab" onclick="showTab('recorrentes')">🔄 Recorrentes</button>
+            <button class="tab" onclick="showTab('relatorios')">📈 Relatórios</button>
+            <button class="tab" onclick="showTab('config')">⚙️ Config</button>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div id="dashboard" class="tab-content active">
+            <div class="dashboard">
+                <div class="card receita">
+                    <h3>💚 Receitas</h3>
+                    <div class="value" id="totalReceitas">R$ 0,00</div>
+                </div>
+                <div class="card despesa">
+                    <h3>💔 Despesas</h3>
+                    <div class="value" id="totalDespesas">R$ 0,00</div>
+                </div>
+                <div class="card saldo">
+                    <h3>💰 Saldo</h3>
+                    <div class="value" id="saldo">R$ 0,00</div>
+                </div>
+                <div class="card meta">
+                    <h3>🎯 Economia</h3>
+                    <div class="value" id="economia">R$ 0,00</div>
+                </div>
+                <div class="card">
+                    <h3>📅 Mês Atual</h3>
+                    <div class="value" id="mesAtual" style="color:#667eea; font-size:1.3em;">-</div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div id="alertas"></div>
+                
+                <div class="section">
+                    <h2>📊 Gastos por Categoria</h2>
+                    <div class="chart-container" id="categoryChart"></div>
+                </div>
+
+                <div class="section">
+                    <h2>📋 Últimas Transações</h2>
+                    <div id="recentTransactions"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRANSAÇÕES -->
+        <div id="transacoes" class="tab-content">
+            <div class="content">
+                <div class="section">
+                    <h2>➕ Nova Transação</h2>
+                    <form id="formTransacao">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Descrição *</label>
+                                <input type="text" id="descricao" placeholder="Ex: Salário, Aluguel" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Valor (R$) *</label>
+                                <input type="number" id="valor" step="0.01" placeholder="0,00" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Data *</label>
+                                <input type="date" id="data" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tipo *</label>
+                                <select id="tipo" required>
+                                    <option value="receita">💚 Receita</option>
+                                    <option value="despesa">💔 Despesa</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Categoria *</label>
+                                <select id="categoria" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Status *</label>
+                                <select id="status">
+                                    <option value="pago">✅ Pago</option>
+                                    <option value="pendente">⏳ Pendente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Observações</label>
+                            <textarea id="observacoes" placeholder="Notas adicionais..."></textarea>
+                        </div>
+                        <button type="submit">Adicionar Transação</button>
+                    </form>
+                </div>
+
+                <div class="section">
+                    <h2>🔍 Filtrar Transações</h2>
+                    <div class="filter-section">
+                        <div class="form-row">
+                            <div>
+                                <label>Mês</label>
+                                <input type="month" id="filtroMes">
+                            </div>
+                            <div>
+                                <label>Tipo</label>
+                                <select id="filtroTipo">
+                                    <option value="">Todos</option>
+                                    <option value="receita">Receitas</option>
+                                    <option value="despesa">Despesas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Status</label>
+                                <select id="filtroStatus">
+                                    <option value="">Todos</option>
+                                    <option value="pago">Pago</option>
+                                    <option value="pendente">Pendente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;" class="btn-group">
+                            <button onclick="aplicarFiltros()">Filtrar</button>
+                            <button class="btn-secondary" onclick="limparFiltros()">Limpar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📋 Todas as Transações</h2>
+                    <div id="listaTransacoes"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- METAS -->
+        <div id="metas" class="tab-content">
+            <div class="content">
+                <div class="section">
+                    <h2>🎯 Nova Meta de Economia</h2>
+                    <form id="formMeta">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nome da Meta *</label>
+                                <input type="text" id="metaNome" placeholder="Ex: Viagem, Carro" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Valor Objetivo (R$) *</label>
+                                <input type="number" id="metaValor" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Data Limite</label>
+                                <input type="date" id="metaData">
+                            </div>
+                        </div>
+                        <button type="submit">Criar Meta</button>
+                    </form>
+                </div>
+
+                <div class="section">
+                    <h2>📊 Minhas Metas</h2>
+                    <div id="listaMetas"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RECORRENTES -->
+        <div id="recorrentes" class="tab-content">
+            <div class="content">
+                <div class="section">
+                    <h2>🔄 Nova Despesa/Receita Recorrente</h2>
+                    <form id="formRecorrente">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Descrição *</label>
+                                <input type="text" id="recDesc" placeholder="Ex: Netflix, Internet" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Valor (R$) *</label>
+                                <input type="number" id="recValor" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo *</label>
+                                <select id="recTipo">
+                                    <option value="despesa">💔 Despesa</option>
+                                    <option value="receita">💚 Receita</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Dia do Vencimento *</label>
+                                <select id="recDia" required></select>
+                            </div>
+                        </div>
+                        <button type="submit">Adicionar Recorrente</button>
+                    </form>
+                </div>
+
+                <div class="section">
+                    <h2>📋 Despesas/Receitas Recorrentes</h2>
+                    <div id="listaRecorrentes"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RELATÓRIOS -->
+        <div id="relatorios" class="tab-content">
+            <div class="content">
+                <div class="section">
+                    <h2>📈 Relatório Mensal</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Selecione o Mês</label>
+                            <input type="month" id="relMes">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: flex-end;">
+                            <button onclick="gerarRelatorio()">Gerar Relatório</button>
+                        </div>
+                    </div>
+                    <div id="relConteudo"></div>
+                </div>
+
+                <div class="section">
+                    <h2>💾 Exportar/Importar Dados</h2>
+                    <div class="btn-group">
+                        <button onclick="exportarCSV()">📊 Exportar CSV</button>
+                        <button class="btn-secondary" onclick="exportarJSON()">📄 Backup JSON</button>
+                        <button class="btn-secondary" onclick="importarDados()">📥 Importar</button>
+                    </div>
+                    <input type="file" id="fileImport" accept=".json" style="display: none;">
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIGURAÇÕES -->
+        <div id="config" class="tab-content">
+            <div class="content">
+                <div class="section">
+                    <h2>🗑️ Gerenciar Dados</h2>
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Atenção!</strong> As ações abaixo são irreversíveis.
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-danger" onclick="limparTudo()">Limpar Tudo</button>
+                        <button class="btn-danger" onclick="limparTrans()">Limpar Transações</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let transacoes = JSON.parse(localStorage.getItem('trans')) || [];
+        let metas = JSON.parse(localStorage.getItem('metas')) || [];
+        let recorrentes = JSON.parse(localStorage.getItem('rec')) || [];
+        let cats = {
+            receita: ['Salário', 'Freelance', 'Investimentos', 'Bônus', 'Outros'],
+            despesa: ['Moradia', 'Alimentação', 'Transporte', 'Saúde', 'Educação', 'Lazer', 'Assinaturas', 'Outros']
+        };
+
+        function fmt(v) { return new Intl.NumberFormat('pt-BR', {style: 'currency', currency: 'BRL'}).format(v); }
+        function fmtData(d) { return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR'); }
+
+        document.getElementById('data').valueAsDate = new Date();
+        const hj = new Date();
+        document.getElementById('filtroMes').value = `${hj.getFullYear()}-${String(hj.getMonth() + 1).padStart(2, '0')}`;
+        document.getElementById('relMes').value = `${hj.getFullYear()}-${String(hj.getMonth() + 1).padStart(2, '0')}`;
+        
+        for(let i = 1; i <= 31; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `Dia ${i}`;
+            document.getElementById('recDia').appendChild(opt);
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            
+            if(tab === 'dashboard') atualizarDash();
+            if(tab === 'transacoes') renderTrans();
+            if(tab === 'metas') renderMetas();
+            if(tab === 'recorrentes') renderRec();
+        }
+
+        function atualizarCats() {
+            const el = document.getElementById('categoria');
+            const tipo = document.getElementById('tipo').value;
+            el.innerHTML = '';
+            (cats[tipo] || cats.despesa).forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                el.appendChild(opt);
+            });
+        }
+
+        document.getElementById('tipo').addEventListener('change', atualizarCats);
+        atualizarCats();
+
+        document.getElementById('formTransacao').onsubmit = (e) => {
+            e.preventDefault();
+            transacoes.push({
+                id: Date.now(),
+                descricao: document.getElementById('descricao').value,
+                valor: parseFloat(document.getElementById('valor').value),
+                data: document.getElementById('data').value,
+                tipo: document.getElementById('tipo').value,
+                categoria: document.getElementById('categoria').value,
+                status: document.getElementById('status').value,
+                obs: document.getElementById('observacoes').value
+            });
+            localStorage.setItem('trans', JSON.stringify(transacoes));
+            e.target.reset();
+            document.getElementById('data').valueAsDate = new Date();
+            alert('✅ Transação adicionada!');
+            renderTrans();
+        };
+
+        document.getElementById('formMeta').onsubmit = (e) => {
+            e.preventDefault();
+            metas.push({
+                id: Date.now(),
+                nome: document.getElementById('metaNome').value,
+                valor: parseFloat(document.getElementById('metaValor').value),
+                economizado: 0,
+                data: document.getElementById('metaData').value
+            });
+            localStorage.setItem('metas', JSON.stringify(metas));
+            e.target.reset();
+            alert('✅ Meta criada!');
+            renderMetas();
+        };
+
+        document.getElementById('formRecorrente').onsubmit = (e) => {
+            e.preventDefault();
+            recorrentes.push({
+                id: Date.now(),
+                descricao: document.getElementById('recDesc').value,
+                valor: parseFloat(document.getElementById('recValor').value),
+                tipo: document.getElementById('recTipo').value,
+                dia: document.getElementById('recDia').value
+            });
+            localStorage.setItem('rec', JSON.stringify(recorrentes));
+            e.target.reset();
+            alert('✅ Recorrente adicionada!');
+            renderRec();
+        };
+
+        function calcTotais(filtradas = transacoes) {
+            const rec = filtradas.filter(t => t.tipo === 'receita' && t.status === 'pago').reduce((s, t) => s + t.valor, 0);
+            const des = filtradas.filter(t => t.tipo === 'despesa' && t.status === 'pago').reduce((s, t) => s + t.valor, 0);
+            return { rec, des, saldo: rec - des };
+        }
+
+        function atualizarDash() {
+            const { rec, des, saldo } = calcTotais();
+            document.getElementById('totalReceitas').textContent = fmt(rec);
+            document.getElementById('totalDespesas').textContent = fmt(des);
+            document.getElementById('saldo').textContent = fmt(saldo);
+            document.getElementById('economia').textContent = fmt(Math.max(0, saldo));
+            document.getElementById('mesAtual').textContent = new Date().toLocaleDateString('pt-BR', {month: 'long', year: 'numeric'});
+
+            let alertas = '';
+            const pend = transacoes.filter(t => t.status === 'pendente');
+            if(pend.length > 0) alertas += `<div class="alert alert-warning">⚠️ ${pend.length} transação(ões) pendente(s)</div>`;
+            if(saldo < 0) alertas += `<div class="alert alert-warning">⚠️ Saldo negativo!</div>`;
+            document.getElementById('alertas').innerHTML = alertas;
+
+            const catDes = {};
+            transacoes.filter(t => t.tipo === 'despesa' && t.status === 'pago').forEach(t => {
+                catDes[t.categoria] = (catDes[t.categoria] || 0) + t.valor;
+            });
+            
+            let chartHTML = '';
+            const total = Object.values(catDes).reduce((a, b) => a + b, 0);
+            if(total > 0) {
+                Object.entries(catDes).sort((a, b) => b[1] - a[1]).forEach(([cat, val]) => {
+                    const perc = (val / total * 100).toFixed(1);
+                    chartHTML += `
+                        <div class="category-bar">
+                            <div class="category-label">
+                                <span>${cat}</span>
+                                <span><strong>${fmt(val)}</strong> (${perc}%)</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${perc}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                chartHTML = '<div class="empty-state">Sem despesas</div>';
+            }
+            document.getElementById('categoryChart').innerHTML = chartHTML;
+
+            const ultimas = [...transacoes].sort((a, b) => new Date(b.data) - new Date(a.data)).slice(0, 5);
+            let listHTML = '';
+            if(ultimas.length > 0) {
+                ultimas.forEach(t => {
+                    listHTML += `
+                        <div class="transaction-item">
+                            <div class="transaction-info">
+                                <div class="transaction-name">${t.descricao}</div>
+                                <div class="transaction-category">${t.categoria} • ${fmtData(t.data)} • ${t.status === 'pago' ? '✅' : '⏳'}</div>
+                            </div>
+                            <div class="transaction-value ${t.tipo}">${t.tipo === 'receita' ? '+' : '-'} ${fmt(t.valor)}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                listHTML = '<div class="empty-state">Sem transações</div>';
+            }
+            document.getElementById('recentTransactions').innerHTML = listHTML;
+        }
+
+        function renderTrans(filtradas = null) {
+            const lista = filtradas || transacoes;
+            let html = '';
+            if(lista.length > 0) {
+                [...lista].sort((a, b) => new Date(b.data) - new Date(a.data)).forEach(t => {
+                    html += `
+                        <div class="transaction-item">
+                            <div class="transaction-info">
+                                <div class="transaction-name">${t.descricao}</div>
+                                <div class="transaction-category">${t.categoria} • ${fmtData(t.data)} • ${t.status === 'pago' ? '✅' : '⏳'}</div>
+                                ${t.obs ? `<div style="color:#666;font-size:0.85em">💬 ${t.obs}</div>` : ''}
+                            </div>
+                            <div class="transaction-value ${t.tipo}">${t.tipo === 'receita' ? '+' : '-'} ${fmt(t.valor)}</div>
+                            <button class="btn-danger" onclick="delTrans(${t.id})">🗑️</button>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<div class="empty-state">📭<br>Sem transações</div>';
+            }
+            document.getElementById('listaTransacoes').innerHTML = html;
+        }
+
+        function delTrans(id) {
+            if(confirm('Excluir?')) {
+                transacoes = transacoes.filter(t => t.id !== id);
+                localStorage.setItem('trans', JSON.stringify(transacoes));
+                renderTrans();
+                atualizarDash();
+            }
+        }
+
+        function aplicarFiltros() {
+            const mes = document.getElementById('filtroMes').value;
+            const tipo = document.getElementById('filtroTipo').value;
+            const status = document.getElementById('filtroStatus').value;
+
+            let filt = transacoes;
+            if(mes) filt = filt.filter(t => t.data.startsWith(mes));
+            if(tipo) filt = filt.filter(t => t.tipo === tipo);
+            if(status) filt = filt.filter(t => t.status === status);
+
+            renderTrans(filt);
+        }
+
+        function limparFiltros() {
+            document.getElementById('filtroMes').value = '';
+            document.getElementById('filtroTipo').value = '';
+            document.getElementById('filtroStatus').value = '';
+            renderTrans();
+        }
+
+        function renderMetas() {
+            let html = '';
+            if(metas.length > 0) {
+                metas.forEach(m => {
+                    const perc = Math.min(100, (m.economizado / m.valor * 100)).toFixed(1);
+                    html += `
+                        <div class="meta-item">
+                            <div style="flex:1">
+                                <div class="transaction-name">${m.nome}</div>
+                                <div>Meta: ${fmt(m.valor)} • ${fmt(m.economizado)}</div>
+                                ${m.data ? `<div style="color:#666;font-size:0.85em">📅 ${fmtData(m.data)}</div>` : ''}
+                                <div class="progress-bar">
+                                    <div class="progress-fill ${perc > 100 ? 'over' : ''}" style="width: ${Math.min(100, perc)}%">${perc}%</div>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn-success" onclick="addEcon(${m.id})">💰</button>
+                                <button class="btn-danger" onclick="delMeta(${m.id})">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<div class="empty-state">🎯<br>Sem metas</div>';
+            }
+            document.getElementById('listaMetas').innerHTML = html;
+        }
+
+        function addEcon(id) {
+            const v = prompt('Valor para adicionar:');
+            if(v && !isNaN(v)) {
+                const meta = metas.find(m => m.id === id);
+                meta.economizado += parseFloat(v);
+                localStorage.setItem('metas', JSON.stringify(metas));
+                renderMetas();
+            }
+        }
+
+        function delMeta(id) {
+            if(confirm('Excluir meta?')) {
+                metas = metas.filter(m => m.id !== id);
+                localStorage.setItem('metas', JSON.stringify(metas));
+                renderMetas();
+            }
+        }
+
+        function renderRec() {
+            let html = '';
+            if(recorrentes.length > 0) {
+                recorrentes.forEach(r => {
+                    html += `
+                        <div class="recorrente-item">
+                            <div style="flex:1">
+                                <div class="transaction-name">${r.descricao}</div>
+                                <div>Dia ${r.dia} • ${r.tipo}</div>
+                            </div>
+                            <div class="transaction-value ${r.tipo}">${r.tipo === 'receita' ? '+' : '-'} ${fmt(r.valor)}</div>
+                            <div class="btn-group">
+                                <button onclick="lancarRec(${r.id})">📝</button>
+                                <button class="btn-danger" onclick="delRec(${r.id})">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<div class="empty-state">🔄<br>Sem recorrentes</div>';
+            }
+            document.getElementById('listaRecorrentes').innerHTML = html;
+        }
+
+        function lancarRec(id) {
+            const rec = recorrentes.find(r => r.id === id);
+            if(rec) {
+                transacoes.push({
+                    id: Date.now(),
+                    descricao: rec.descricao + ' (Auto)',
+                    valor: rec.valor,
+                    data: new Date().toISOString().split('T')[0],
+                    tipo: rec.tipo,
+                    categoria: cats[rec.tipo][0],
+                    status: 'pago',
+                    obs: 'Recorrente'
+                });
+                localStorage.setItem('trans', JSON.stringify(transacoes));
+                alert('✅ Lançada!');
+            }
+        }
+
+        function delRec(id) {
+            if(confirm('Excluir?')) {
+                recorrentes = recorrentes.filter(r => r.id !== id);
+                localStorage.setItem('rec', JSON.stringify(recorrentes));
+                renderRec();
+            }
+        }
+
+        function gerarRelatorio() {
+            const mes = document.getElementById('relMes').value;
+            if(!mes) return alert('Selecione um mês');
+
+            const filt = transacoes.filter(t => t.data.startsWith(mes));
+            const { rec, des, saldo } = calcTotais(filt);
+
+            let html = `
+                <div class="chart-container">
+                    <h3>${new Date(mes).toLocaleDateString('pt-BR', {month: 'long', year: 'numeric'})}</h3>
+                    <div class="dashboard" style="grid-template-columns: repeat(3, 1fr); margin-top: 20px;">
+                        <div class="card receita"><h3>Receitas</h3><div class="value">${fmt(rec)}</div></div>
+                        <div class="card despesa"><h3>Despesas</h3><div class="value">${fmt(des)}</div></div>
+                        <div class="card saldo"><h3>Saldo</h3><div class="value">${fmt(saldo)}</div></div>
+                    </div>
+                    <div style="margin-top: 30px;">
+                        <h4>Transações: ${filt.length}</h4>
+                        <h4>Economia: ${rec > 0 ? ((saldo / rec) * 100).toFixed(1) : 0}%</h4>
+                    </div>
+                </div>
+            `;
+            document.getElementById('relConteudo').innerHTML = html;
+        }
+
+        function exportarCSV() {
+            let csv = 'Data,Descrição,Categoria,Tipo,Valor,Status\n';
+            transacoes.forEach(t => {
+                csv += `${t.data},"${t.descricao}","${t.categoria}",${t.tipo},${t.valor},${t.status}\n`;
+            });
+            download('transacoes.csv', csv);
+        }
+
+        function exportarJSON() {
+            const dados = { transacoes, metas, recorrentes };
+            download('backup.json', JSON.stringify(dados, null, 2));
+        }
+
+        function download(filename, text) {
+            const el = document.createElement('a');
+            el.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+            el.setAttribute('download', filename);
+            el.click();
+        }
+
+        function importarDados() {
+            document.getElementById('fileImport').click();
+        }
+
+        document.getElementById('fileImport').onchange = (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const dados = JSON.parse(e.target.result);
+                        if(confirm('Substituir dados atuais?')) {
+                            transacoes = dados.transacoes || [];
+                            metas = dados.metas || [];
+                            recorrentes = dados.recorrentes || [];
+                            localStorage.setItem('trans', JSON.stringify(transacoes));
+                            localStorage.setItem('metas', JSON.stringify(metas));
+                            localStorage.setItem('rec', JSON.stringify(recorrentes));
+                            alert('✅ Importado!');
+                            atualizarDash();
+                        }
+                    } catch(err) {
+                        alert('❌ Erro no arquivo');
+                    }
+                };
+                reader.readAsText(file);
+            }
+        };
+
+        function limparTudo() {
+            if(confirm('⚠️ APAGAR TUDO?')) {
+                if(confirm('Certeza absoluta?')) {
+                    localStorage.clear();
+                    location.reload();
+                }
+            }
+        }
+
+        function limparTrans() {
+            if(confirm('Apagar transações?')) {
+                transacoes = [];
+                localStorage.setItem('trans', JSON.stringify(transacoes));
+                renderTrans();
+                atualizarDash();
+            }
+        }
+
+        atualizarDash();
+    </script>
+</body>
+</html>
